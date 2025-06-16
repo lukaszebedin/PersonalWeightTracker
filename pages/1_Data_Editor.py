@@ -15,9 +15,25 @@ if 'user_data' not in st.session_state:
         st.success("File uploaded! You can now edit your data.")
         st.rerun()
     else:
-        st.info("Please upload your CSV file to begin.")
+        st.info("No CSV? Start by adding your first entry below:")
+        
+        with st.form("first_entry_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                first_date = st.date_input("Date")
+            with col2:
+                first_weight = st.number_input("Weight", min_value=0.0, step=0.1)
+            submitted = st.form_submit_button("Create CSV with first entry")
+            if submitted:
+                # Use same format as add data
+                new_datetime = datetime.datetime.combine(first_date, datetime.time())
+                df = pd.DataFrame([{'date': new_datetime, 'weight': first_weight}])
+                st.session_state['user_data'] = df
+                st.success("First entry added! You can now continue editing your data.")
+                st.rerun()  # Only rerun after submit
+                st.stop()   # Only stop after submit
         show_footer()
-        st.stop()  # Stop script here until file is uploaded
+        st.stop()
 else:
     df = st.session_state['user_data']
     st.dataframe(df)

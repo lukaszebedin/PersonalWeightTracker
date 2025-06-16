@@ -8,9 +8,28 @@ import streamlit as st
 st.set_page_config(layout="wide")
 
 st.title('Personal weight loss tracker')
-st.write("""
-Welcome!  
-Use the sidebar to navigate between data entry and analysis pages.
+st.markdown("""
+Welcome to your personal weight loss tracking app!  
+Track your progress, analyze your trends, and stay motivated on your fitness journey.
+
+---
+
+### 🚀 **How to get started**
+
+1. **Go to the sidebar** and open the **Data Editor** page.
+2. **Upload** your weight data (CSV) or start entering new entries.
+3. **Edit, add, or delete** your weight records as needed.
+4. **Download** your updated CSV to save your changes.
+5. **Visit the Analysis page** to visualize your progress and weekly trends.
+
+---
+
+### 📊 **Features**
+
+- Easy data entry and editing
+- Interactive charts and weekly summaries
+- Download your updated data anytime
+- All data stays private in your browser session
 """)
 
 def show_footer():
