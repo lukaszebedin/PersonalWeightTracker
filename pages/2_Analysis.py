@@ -10,8 +10,6 @@ from Home import show_footer
 # st.set_page_config(layout="wide")
 st.title("📈 Weight Analysis")
 
-DATA_PATH = "data/data.csv"
-
 # --- Use session_state to get user data ---
 if 'user_data' not in st.session_state:
     st.info("Please upload your CSV file in the Data Editor page first.")
