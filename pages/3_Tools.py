@@ -5,7 +5,7 @@ from datetime import date, timedelta
 st.set_page_config(layout="wide")
 st.title("⚖️ Fitness Calculators")
 
-tab1, tab2, tab3 = st.tabs(["TDEE and Calorie Target Calculator", "Macro Calculator", "Weight Goal Timeline Calculator"])
+tab1, tab2, tab3 = st.tabs(["🧮 TDEE and Calorie Target Calculator", "🧑‍🔬 Macro Calculator", "🎯 Weight Goal Timeline Calculator"])
 
 # Form for TDEE and Calorie Target Calculator
 with tab1:

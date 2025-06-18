@@ -1,3 +1,4 @@
+from datetime import timedelta
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,6 +7,8 @@ from plotly.subplots import make_subplots
 from collections import defaultdict
 from plotly.colors import sample_colorscale
 from Home import show_footer
+import streamlit as st
+import plotly.express as px
 
 # st.set_page_config(layout="wide")
 st.title("📈 Weight Analysis")
@@ -32,7 +35,7 @@ else:
     weekly_diffs = [None]
     for i in range(1, len(weekly_means)):
         weekly_diffs.append(weekly_means[i] - weekly_means[i-1])
-
+    
     days = np.arange(1, len(weights) + 1)
     initial_weight = weights[0] if len(weights) > 0 else 0
 
@@ -49,7 +52,7 @@ else:
     total_loss = initial_weight - weights[-1] if len(weights) > 0 else 0
 
     # --- TABS ---
-    tab1, tab2, tab3 = st.tabs(["Weight Progression", "Weekly Average", "Weekly Table"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Weight Progression", "📅 Weekly Average", "📋 Weekly Table", "📊 Seasonality Analysis"])
     
     with tab1:
         st.subheader("Weight Progression")
@@ -90,6 +93,36 @@ else:
             margin=dict(l=80, r=80, t=100, b=80)
         )
         st.plotly_chart(fig1, use_container_width=True)
+        
+        # --- PREDICTIVE GOAL DATE ---
+        st.markdown("### 🎯 Predictive Goal Date")
+        valid_weekly_changes = [d for d in weekly_diffs if d is not None]
+        if valid_weekly_changes:
+            avg_weekly_change = sum(valid_weekly_changes) / len(valid_weekly_changes)
+        else:
+            avg_weekly_change = 0
+        
+        if len(weights) > 0 and avg_weekly_change != 0:
+            target_weight = st.number_input(
+                "Set your target weight (kg):",
+                min_value=30.0,
+                max_value=300.0,
+                value=float(weights[-1])
+            )
+            
+        # Calculate weeks needed (sign handles loss or gain)
+        weeks_needed = (target_weight - weights[-1]) / avg_weekly_change if avg_weekly_change != 0 else None
+        if weeks_needed is not None and weeks_needed > 0:
+            goal_date = np.datetime64('today', 'D') + timedelta(weeks=weeks_needed)
+            st.success(
+                f"At your current average rate (**{avg_weekly_change:+.2f} kg/week**), "
+                f"you will reach **{target_weight} kg** in about **{weeks_needed:.1f} weeks** "
+                f"(around **{goal_date.strftime('%Y-%m-%d')}**)."
+            )
+        elif weeks_needed is not None and weeks_needed < 0:
+            st.info("You have already passed your target weight based on your current trend.")
+        else:
+            st.info("Not enough recent weight change to predict a goal date. Try tracking a few more weeks.")
         
     with tab2:
         st.subheader("Weekly Average Weight (Monday to Sunday)")
@@ -185,5 +218,75 @@ else:
             margin=dict(l=80, r=80, t=100, b=80)
         )
         st.plotly_chart(fig3, use_container_width=True)
+    
+    with tab4:
+        st.info("Negative values mean weight loss on average; positive means weight gain. Use these insights to spot patterns and adjust your habits!")
+        
+        # Ensure date column is datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        # --- By Day of Week ---
+        df['day_of_week'] = df['date'].dt.day_name()
+        df['weight_diff'] = df['weight'].diff()
+        day_avg = df.groupby('day_of_week')['weight_diff'].mean().reindex([
+            'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+        ])
+
+        fig_dow = px.bar(
+            x=day_avg.index,
+            y=day_avg.values,
+            labels={'x': 'Day of Week', 'y': 'Average Weight Change (kg)'},
+            title="Average Weight Change by Day of Week",
+            color=day_avg.values,
+            color_continuous_scale="Blues"
+        )
+        st.plotly_chart(fig_dow, use_container_width=True)
+        
+        # --- Day of Week Summary ---
+        max_gain_day = day_avg.idxmax()
+        max_gain = day_avg.max()
+        max_loss_day = day_avg.idxmin()
+        max_loss = day_avg.min()
+        if max_gain > 0:
+            st.info(f"**You tend to gain the most weight on {max_gain_day} (+{max_gain:.2f} kg on average).**")
+        if max_loss < 0:
+            st.success(f"**You tend to lose the most weight on {max_loss_day} ({max_loss:.2f} kg on average).**")
+        if all(abs(day_avg.values) < 0.05):
+            st.write("Your weight changes are very consistent across the week, with no strong daily patterns.")
+
+        st.markdown("---")
+
+        # --- By Month ---
+        df['month'] = df['date'].dt.month_name()
+        month_avg = df.groupby('month')['weight_diff'].mean()
+        # Ensure months are in calendar order
+        months_order = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December']
+        month_avg = month_avg.reindex(months_order)
+
+        fig_month = px.bar(
+            x=month_avg.index,
+            y=month_avg.values,
+            labels={'x': 'Month', 'y': 'Average Weight Change (kg)'},
+            title="Average Weight Change by Month",
+            color=month_avg.values,
+            color_continuous_scale="Blues"
+        )
+        st.plotly_chart(fig_month, use_container_width=True)
+        
+        # --- Month Summary ---
+        max_month_gain = month_avg.idxmax()
+        max_month_gain_val = month_avg.max()
+        max_month_loss = month_avg.idxmin()
+        max_month_loss_val = month_avg.min()
+        if max_month_gain_val > 0:
+            st.info(f"**You tend to gain the most weight in {max_month_gain} (+{max_month_gain_val:.2f} kg on average).**")
+        if max_month_loss_val < 0:
+            st.success(f"**You tend to lose the most weight in {max_month_loss} ({max_month_loss_val:.2f} kg on average).**")
+        if all(abs(month_avg.dropna().values) < 0.05):
+            st.write("Your weight changes are very consistent across months, with no strong seasonal patterns.")
+
+        st.caption("Negative values mean weight loss on average; positive means weight gain. Use these insights to spot patterns and adjust your habits!")
+
 
 show_footer()
