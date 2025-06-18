@@ -1,5 +1,6 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
+from personal_gym.Home import show_footer
 
 st.set_page_config(layout="wide")
 st.title("In development. Coming soon...")
@@ -43,3 +44,5 @@ if prompt:
         message = "Hello! How can I help you?"
         st.markdown(message)
         st.session_state.messages.append(AIMessage(content=message))
+        
+show_footer()

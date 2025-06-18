@@ -7,6 +7,12 @@ import streamlit as st
 
 st.set_page_config(layout="wide")
 
+# st.set_page_config(
+#     page_title="Personal weight loss tracker",
+#     page_icon="🏋️‍♂️",
+#     layout="wide"
+# )
+
 st.title('Personal weight loss tracker')
 st.markdown("""
 Welcome to your personal weight loss tracking app!  
@@ -21,7 +27,7 @@ Track your progress, analyze your trends, and stay motivated on your fitness jou
 3. **Edit, add, or delete** your weight records as needed.
 4. **Download** your updated CSV to save your changes.
 5. **Visit the Analysis page** to visualize your progress and weekly trends.
-
+6. Explore the **Tools** page for extra utilities like calorie calculation and macro calculation.
 ---
 
 ### 📊 **Features**
@@ -29,6 +35,7 @@ Track your progress, analyze your trends, and stay motivated on your fitness jou
 - Easy data entry and editing
 - Interactive charts and weekly summaries
 - Download your updated data anytime
+- Extra tools for calorie tracking
 - All data stays private in your browser session
 """)
 

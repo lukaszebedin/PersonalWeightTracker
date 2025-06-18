@@ -286,7 +286,4 @@ else:
         if all(abs(month_avg.dropna().values) < 0.05):
             st.write("Your weight changes are very consistent across months, with no strong seasonal patterns.")
 
-        st.caption("Negative values mean weight loss on average; positive means weight gain. Use these insights to spot patterns and adjust your habits!")
-
-
 show_footer()

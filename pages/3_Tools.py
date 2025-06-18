@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from datetime import date, timedelta
+from Home import show_footer
 
 st.set_page_config(layout="wide")
 st.title("⚖️ Fitness Calculators")
@@ -208,3 +209,5 @@ with tab3:
         st.warning("Please enter a weekly change greater than 0.")
 
     st.caption("This estimate assumes a consistent average weekly weight change. Actual results may vary.")
+
+show_footer()
