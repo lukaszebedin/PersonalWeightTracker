@@ -1,10 +1,11 @@
 import pandas as pd
 import streamlit as st
+from datetime import date, timedelta
 
 st.set_page_config(layout="wide")
 st.title("⚖️ Fitness Calculators")
 
-tab1, tab2 = st.tabs(["TDEE and Calorie Target Calculator", "Macro Calculator"])
+tab1, tab2, tab3 = st.tabs(["TDEE and Calorie Target Calculator", "Macro Calculator", "Weight Goal Timeline Calculator"])
 
 # Form for TDEE and Calorie Target Calculator
 with tab1:
@@ -145,4 +146,65 @@ with tab1:
     )
     
 with tab2:
-    st.write("In development. Coming soon...")
+    st.write("Divide your daily calories into protein, carbs, and fats based on your preferences or common recommendations.")
+
+    # Input: Daily Calorie Target
+    calorie_input = st.number_input(
+        "Daily Calorie Target (kcal)",
+        min_value=1000,
+        max_value=5000,
+        value=2000,
+        help="Enter your daily calorie goal (from TDEE or custom)."
+    )
+
+    st.markdown("#### Choose Macro Ratios (%)")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        protein_pct = st.slider("Protein (%)", min_value=10, max_value=40, value=30)
+    with col2:
+        fat_pct = st.slider("Fat (%)", min_value=10, max_value=40, value=25)
+    with col3:
+        carb_pct = 100 - protein_pct - fat_pct
+        st.markdown(f"**Carbs (%):** {carb_pct}")
+
+    # Validation
+    if carb_pct < 0:
+        st.error("Protein and fat percentages add up to more than 100%. Please adjust.")
+    else:
+        # Calculate grams
+        protein_grams = (calorie_input * protein_pct / 100) / 4
+        fat_grams = (calorie_input * fat_pct / 100) / 9
+        carb_grams = (calorie_input * carb_pct / 100) / 4
+
+        # Show results in a table
+        macro_df = pd.DataFrame({
+            "Macro": ["Protein", "Fat", "Carbs"],
+            "Percent (%)": [protein_pct, fat_pct, carb_pct],
+            "Grams per day": [round(protein_grams), round(fat_grams), round(carb_grams)]
+        })
+
+        st.markdown("#### Your Daily Macros")
+        st.table(macro_df)
+
+        st.info(
+            "Typical macro recommendations are:\n"
+            "- Protein: 25–35%\n"
+            "- Fat: 20–35%\n"
+            "- Carbs: remainder\n\n"
+            "Adjust as needed for your goals (e.g., higher protein for muscle gain, lower carbs for keto)."
+        )
+    
+with tab3:
+    current_weight = st.number_input("Current weight (kg)", min_value=30.0, max_value=300.0, value=80.0)
+    target_weight = st.number_input("Target weight (kg)", min_value=30.0, max_value=300.0, value=70.0)
+    weekly_change = st.number_input("Average weekly change (kg)", min_value=0.01, value=0.5, help="Enter positive value. Use 0.5 for typical weight loss/gain.")
+
+    if weekly_change > 0:
+        weeks = abs(current_weight - target_weight) / weekly_change
+        estimated_date = date.today() + timedelta(weeks=weeks)
+        st.success(f"Estimated time to reach your goal: **{weeks:.1f} weeks**")
+        st.info(f"Estimated goal date: **{estimated_date.strftime('%Y-%m-%d')}**")
+    else:
+        st.warning("Please enter a weekly change greater than 0.")
+
+    st.caption("This estimate assumes a consistent average weekly weight change. Actual results may vary.")
