@@ -3,6 +3,9 @@
 A multipage Streamlit app for tracking your weight and visualizing your gym progress. Easily upload, edit, and analyze your weight data, and monitor your strength training progress with interactive charts grouped by your own custom workout routine.
 
 
+> [!TIP]
+> The [/data](https://github.com/Prashant-JT/PersonalWeightTracker/tree/main/data) folder have some .csv files as examples
+
 ## Features
 
 - Upload your weight data as a CSV file
@@ -49,7 +52,7 @@ Upload your workout routine and FitNotes CSV to track your gym progress and prog
 
 - Go to the **Data Editor** page to upload your CSV and manage your data.
 - Use the **Analysis** page to view progress and trends.
-- Visit the **Gym Progress Tracker** page to upload your workout plan and FitNotes data, filter by date, and analyze your gym progress.
+- Visit the **Fit Notes** page to upload your workout plan and FitNotes data, filter by date, and analyze your gym progress.
 - After making changes, always download your updated CSV to save your edits.
 
 ## License
@@ -58,5 +61,5 @@ MIT License
 
 ---
 
-**Note:**  
-This app does not store your data. Download your CSV after editing to keep your latest records!
+> [!NOTE]
+> This app does not store your data. Download your CSV after editing to keep your latest records!
