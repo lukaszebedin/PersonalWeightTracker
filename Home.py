@@ -5,6 +5,7 @@ from collections import defaultdict
 import pandas as pd
 import streamlit as st
 
+st.set_page_config(layout="wide")
 st.title('Personal weight loss tracker')
 st.markdown("""
 Welcome to your personal weight loss tracking app!  
@@ -22,9 +23,9 @@ Track your progress, analyze your trends, and stay motivated on your fitness jou
 6. Explore the **Tools** page for extra utilities like calorie calculation and macro calculation.
 7. **NEW:** Go to the **Fit Notes** page to:
     - Upload your custom workout routine as a JSON file (define your days and exercises).
-    - Upload your FitNotes_Export.csv file from the FitNotes app.
+    - Upload your FitNotes.csv file from the FitNotes app.
     - Filter your gym progress by any date range.
-    - View interactive charts for each exercise, grouped by your own routine days—see at a glance how you’re progressing and whether you’re applying progressive overload.
+    - View interactive charts for each exercise, grouped by your own routine days—see at a glance how you're progressing and whether you're applying progressive overload.
     - Instantly spot trends, plateaus, and improvements to optimize your training plan.
 
 ---
@@ -38,7 +39,6 @@ Track your progress, analyze your trends, and stay motivated on your fitness jou
 - **NEW:** Customizable gym progress tracking with your own routine and FitNotes data
 - All data stays private in your browser session
 """)
-
 
 def show_footer():
     footer = """

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import json
+from Home import show_footer
 
 st.set_page_config(layout="wide")
 st.header("🏋️ Gym Progress Tracker (Custom Routine + FitNotes)")
@@ -108,3 +109,5 @@ if plan_file and fitnotes_file:
                     st.info(f"No data available for {exercise} in selected range.")
 else:
     st.info("Please upload both your workout plan (JSON) and FitNotes CSV files to view your progress.")
+
+show_footer()
