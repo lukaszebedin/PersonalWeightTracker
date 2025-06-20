@@ -1,0 +1,42 @@
+{
+  "Day 1": [
+    "Flat Barbell Bench Press",
+    "Standing Barbell Shoulder Press",
+    "Cable Flys",
+    "Cable Lateral Raise",
+    "Cable Overhead Triceps Extension",
+    "Rope Push Down"
+  ],
+  "Day 2": [
+    "Pull Up",
+    "Seated Cable Row",
+    "Chin Up",
+    "Rear Delt Machine Fly",
+    "EZ-Bar Curl",
+    "Dumbbell Hammer Curl"
+  ],
+  "Day 3": [
+    "Seated Leg Press (Quad Focus)",
+    "Leg Press",
+    "Leg Extension Machine",
+    "Lying Leg Curl Machine",
+    "Barbell Calf Raise"
+  ],
+  "Day 4": [
+    "Incline Barbell Bench Press",
+    "Flat Machine Bench Press",
+    "Lateral Dumbbell Raise",
+    "Seated Machine Fly",
+    "Cable Overhead Triceps Extension",
+    "Machine Push Down"
+  ],
+  "Day 5": [
+    "Neutral Lat Pulldown",
+    "Chest Supported Row",
+    "Seated Wide Grip Row",
+    "Reverse Cable Flys",
+    "Cable Face Pull",
+    "Standing Bayesian Cable Curl",
+    "EZ-Bar Preacher Curl"
+  ]
+}
