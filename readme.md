@@ -16,6 +16,34 @@ A multipage Streamlit app for tracking and analyzing your weight data—and now 
   - **Important:** Exercise names in your JSON must match exactly the names in your FitNotes CSV export
 - All changes are session-based for privacy (no data is stored on the server)
 
+---
+
+## Demo
+
+### Data Editor
+
+See how easy it is to upload and edit your weight data:
+
+![Data Editor Demo](assets/gifs/data-editor.gif)
+
+---
+
+### Analysis Page
+
+Visualize your progress and trends:
+
+![Analysis Demo](assets/gifs/analysis.gif)
+
+---
+
+### Gym Progress Tracker
+
+Upload your workout routine and FitNotes CSV to track your gym progress and progressive overload:
+
+![Gym Progress Tracker Demo](assets/gifs/gym-progress.gif)
+
+---
+
 ## Usage
 
 - Go to the **Data Editor** page to upload your CSV and manage your data.
