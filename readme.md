@@ -1,6 +1,7 @@
-# Personal Weight Tracker
+# Personal Weight & Gym Progress Tracker
 
-A multipage Streamlit app for tracking and analyzing your weight data—and now your gym progress too!
+A multipage Streamlit app for tracking your weight and visualizing your gym progress. Easily upload, edit, and analyze your weight data, and monitor your strength training progress with interactive charts grouped by your own custom workout routine.
+
 
 ## Features
 
