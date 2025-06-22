@@ -1,15 +1,142 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 import json
 from Home import show_footer
 
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 st.header("🏋️ Gym Progress Tracker (Custom Routine + FitNotes)")
 
-# File uploaders
+# Persist file uploads in session state
+if 'plan_file' not in st.session_state:
+    st.session_state['plan_file'] = None
+if 'fitnotes_file' not in st.session_state:
+    st.session_state['fitnotes_file'] = None
+
 plan_file = st.file_uploader("Upload your workout plan (JSON file)", type="json")
+if plan_file is not None:
+    st.session_state['plan_file'] = plan_file
+
 fitnotes_file = st.file_uploader("Upload your FitNotes.csv file", type="csv")
+if fitnotes_file is not None:
+    st.session_state['fitnotes_file'] = fitnotes_file
+
+def is_valid_json_file(file):
+    try:
+        if file is None:
+            return False
+        # Reset file pointer if needed
+        if hasattr(file, "seek"):
+            file.seek(0)
+        json.load(file)
+        if hasattr(file, "seek"):
+            file.seek(0)
+        return True
+    except Exception:
+        return False
+
+def is_valid_csv_file(file):
+    try:
+        if file is None:
+            return False
+        if hasattr(file, "seek"):
+            file.seek(0)
+        pd.read_csv(file, nrows=1)
+        if hasattr(file, "seek"):
+            file.seek(0)
+        return True
+    except Exception:
+        return False
+
+plan_file = st.session_state.get('plan_file')
+fitnotes_file = st.session_state.get('fitnotes_file')
+
+
+# Use session_state for file persistence
+plan_file = st.session_state['plan_file']
+fitnotes_file = st.session_state['fitnotes_file']
+
+if is_valid_json_file(plan_file) and is_valid_csv_file(fitnotes_file):
+    routine = json.load(plan_file)
+    days = list(routine.keys())
+    plan_file.seek(0)  # Reset pointer after loading
+    df = pd.read_csv(fitnotes_file)
+    fitnotes_file.seek(0)
+    
+    df['Date'] = pd.to_datetime(df['Date'])
+    df['Volume'] = df['Weight'] * df['Reps']
+
+    min_date, max_date = df['Date'].min(), df['Date'].max()
+    date_range = st.date_input(
+        "Select date range to visualize",
+        [min_date, max_date],
+        min_value=min_date,
+        max_value=max_date
+    )
+    if isinstance(date_range, (tuple, list)):
+        df = df[(df['Date'] >= pd.to_datetime(date_range[0])) & (df['Date'] <= pd.to_datetime(date_range[1]))]
+
+    tabs = st.tabs(days)
+
+    for day_index, day in enumerate(days):
+        exercises = routine[day]
+        with tabs[day_index]:
+            st.subheader(f"{day} - Exercise Progress Details")
+            for exercise in exercises:
+                df_ex = df[df['Exercise'] == exercise]
+                if not df_ex.empty:
+                    # Group by date
+                    grouped = df_ex.groupby('Date')
+                    volume_total = grouped['Volume'].sum()
+                    series_count = grouped.size()
+                    max_weight = grouped['Weight'].max()
+                    avg_volume_per_series = volume_total / series_count
+                    avg_reps_per_series = grouped['Reps'].mean()
+
+                    summary = pd.DataFrame({
+                        'Avg_Volume_Per_Series': avg_volume_per_series,
+                        'Max_Weight': max_weight,
+                        'Series_Count': series_count,
+                        'Avg_Reps_Per_Series': avg_reps_per_series
+                    }).sort_index()
+
+                    # Combined chart
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(
+                        x=summary.index, y=summary['Series_Count'],
+                        name='Sets per session', marker_color='rgba(99,110,250,0.4)', yaxis='y2'
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=summary.index, y=summary['Avg_Volume_Per_Series'],
+                        name='Avg. volume/set', mode='lines+markers'
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=summary.index, y=summary['Max_Weight'],
+                        name='Max weight', mode='lines+markers'
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=summary.index, y=summary['Avg_Reps_Per_Series'],
+                        name='Avg. reps/set', mode='lines+markers'
+                    ))
+
+                    # Secondary y-axis for sets
+                    fig.update_layout(
+                        title=exercise,
+                        xaxis_title='Date',
+                        yaxis_title='Value',
+                        yaxis2=dict(
+                            title='Sets per session',
+                            overlaying='y',
+                            side='right',
+                            showgrid=False
+                        ),
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                    )
+                    st.plotly_chart(fig, use_container_width=True, key=f"{day}_{exercise}")
+                else:
+                    st.info(f"No data available for {exercise} in the selected range.")
+else:
+    st.info("Please upload both your workout plan (JSON) and FitNotes CSV files to view your progress.")
 
 st.info(
     """
@@ -37,7 +164,7 @@ st.info(
 
     **How should your workout plan JSON be formatted?**
     
-    - The exercise names you put in your JSON file **must match exactly** the names as they appear in your FitNotes csv. 
+    - The exercise names you put in your JSON file **must match exactly** the names as they appear in your FitNotes CSV. 
     (Check for typos, extra spaces, or different capitalization.)
 
     - For example:
@@ -55,59 +182,5 @@ st.info(
     ```
     """
 )
-
-if plan_file and fitnotes_file:
-    # Load workout plan JSON
-    routine = json.load(plan_file)
-    days = list(routine.keys())
-
-    # Load FitNotes CSV and preprocess
-    df = pd.read_csv(fitnotes_file)
-    df['Date'] = pd.to_datetime(df['Date'])
-    df['Volume'] = df['Weight'] * df['Reps']
-
-    # Date filter
-    min_date, max_date = df['Date'].min(), df['Date'].max()
-    date_range = st.date_input(
-        "Select date range to visualize",
-        [min_date, max_date],
-        min_value=min_date,
-        max_value=max_date
-    )
-    if isinstance(date_range, tuple) or isinstance(date_range, list):
-        df = df[(df['Date'] >= pd.to_datetime(date_range[0])) & (df['Date'] <= pd.to_datetime(date_range[1]))]
-
-    # Create one tab per workout day
-    tabs = st.tabs(days)
-
-    for day_index, day in enumerate(days):
-        exercises = routine[day]
-        with tabs[day_index]:
-            st.subheader(f"{day} - Total Volume per Exercise")
-            for exercise in exercises:
-                df_ex = df[df['Exercise'] == exercise]
-                if not df_ex.empty:
-                    summary = df_ex.groupby('Date')['Volume'].sum()
-                    fig = px.line(
-                        x=summary.index,
-                        y=summary.values,
-                        markers=True,
-                        labels={'x': 'Date', 'y': 'Total Volume (kg)'},
-                        title=exercise
-                    )
-                    if len(summary) > 2:
-                        mov_avg = summary.rolling(3, min_periods=1).mean()
-                        fig.add_scatter(
-                            x=mov_avg.index,
-                            y=mov_avg.values,
-                            mode='lines',
-                            name='Moving Average (3 sessions)',
-                            line=dict(dash='dash')
-                        )
-                    st.plotly_chart(fig, use_container_width=True, key=f"{day}_{exercise}")
-                else:
-                    st.info(f"No data available for {exercise} in selected range.")
-else:
-    st.info("Please upload both your workout plan (JSON) and FitNotes CSV files to view your progress.")
 
 show_footer()
