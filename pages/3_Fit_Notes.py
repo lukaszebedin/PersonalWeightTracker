@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 import json
 from Home import show_footer
+from utils.file_utils import is_valid_csv_file, is_valid_json_file
+from utils.gym_charts import plot_exercise_progress
 
 # st.set_page_config(layout="wide")
 st.header("🏋️ Gym Progress Tracker (Custom Routine + FitNotes)")
@@ -21,41 +22,14 @@ fitnotes_file = st.file_uploader("Upload your FitNotes.csv file", type="csv")
 if fitnotes_file is not None:
     st.session_state['fitnotes_file'] = fitnotes_file
 
-def is_valid_json_file(file):
-    try:
-        if file is None:
-            return False
-        # Reset file pointer if needed
-        if hasattr(file, "seek"):
-            file.seek(0)
-        json.load(file)
-        if hasattr(file, "seek"):
-            file.seek(0)
-        return True
-    except Exception:
-        return False
-
-def is_valid_csv_file(file):
-    try:
-        if file is None:
-            return False
-        if hasattr(file, "seek"):
-            file.seek(0)
-        pd.read_csv(file, nrows=1)
-        if hasattr(file, "seek"):
-            file.seek(0)
-        return True
-    except Exception:
-        return False
-
 plan_file = st.session_state.get('plan_file')
 fitnotes_file = st.session_state.get('fitnotes_file')
-
 
 # Use session_state for file persistence
 plan_file = st.session_state['plan_file']
 fitnotes_file = st.session_state['fitnotes_file']
 
+# --- File Validation ---
 if is_valid_json_file(plan_file) and is_valid_csv_file(fitnotes_file):
     routine = json.load(plan_file)
     days = list(routine.keys())
@@ -85,7 +59,6 @@ if is_valid_json_file(plan_file) and is_valid_csv_file(fitnotes_file):
             for exercise in exercises:
                 df_ex = df[df['Exercise'] == exercise]
                 if not df_ex.empty:
-                    # Group by date
                     grouped = df_ex.groupby('Date')
                     volume_total = grouped['Volume'].sum()
                     series_count = grouped.size()
@@ -100,38 +73,7 @@ if is_valid_json_file(plan_file) and is_valid_csv_file(fitnotes_file):
                         'Avg_Reps_Per_Series': avg_reps_per_series
                     }).sort_index()
 
-                    # Combined chart
-                    fig = go.Figure()
-                    fig.add_trace(go.Bar(
-                        x=summary.index, y=summary['Series_Count'],
-                        name='Sets per session', marker_color='rgba(99,110,250,0.4)', yaxis='y2'
-                    ))
-                    fig.add_trace(go.Scatter(
-                        x=summary.index, y=summary['Avg_Volume_Per_Series'],
-                        name='Avg. volume/set', mode='lines+markers'
-                    ))
-                    fig.add_trace(go.Scatter(
-                        x=summary.index, y=summary['Max_Weight'],
-                        name='Max weight', mode='lines+markers'
-                    ))
-                    fig.add_trace(go.Scatter(
-                        x=summary.index, y=summary['Avg_Reps_Per_Series'],
-                        name='Avg. reps/set', mode='lines+markers'
-                    ))
-
-                    # Secondary y-axis for sets
-                    fig.update_layout(
-                        title=exercise,
-                        xaxis_title='Date',
-                        yaxis_title='Value',
-                        yaxis2=dict(
-                            title='Sets per session',
-                            overlaying='y',
-                            side='right',
-                            showgrid=False
-                        ),
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-                    )
+                    fig = plot_exercise_progress(summary, exercise)
                     st.plotly_chart(fig, use_container_width=True, key=f"{day}_{exercise}")
                 else:
                     st.info(f"No data available for {exercise} in the selected range.")
