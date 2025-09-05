@@ -1,42 +1,35 @@
 import streamlit as st
 import pandas as pd
 import datetime
-from Home import show_footer
+import pathlib
 
 st.title("📋 Data Editor")
 
-# Only show uploader if no data in session_state
+path_csv = pathlib.Path(__file__).parent.parent.resolve() / "data" / "lukas.csv"
 if 'user_data' not in st.session_state:
-    uploaded_file = st.file_uploader("Upload your weight data CSV", type="csv")
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, parse_dates=['date'])
+    if path_csv.is_file():
+        df = pd.read_csv(path_csv.as_posix(), parse_dates=['date'])
         st.session_state['user_data'] = df
         st.session_state['file_uploaded'] = True
-        st.success("File uploaded! You can now edit your data.")
         st.rerun()
     else:
-        st.info("No CSV? Start by adding your first entry below:")
-        
+        st.info("No CSV? Start by adding your first entry below:")        
         with st.form("first_entry_form"):
             col1, col2 = st.columns(2)
             with col1:
                 first_date = st.date_input("Date")
             with col2:
                 first_weight = st.number_input("Weight", min_value=0.0, step=0.1)
-            submitted = st.form_submit_button("Create CSV with first entry")
-            if submitted:
-                # Use same format as add data
-                new_datetime = datetime.datetime.combine(first_date, datetime.time())
-                df = pd.DataFrame([{'date': new_datetime, 'weight': first_weight}])
-                st.session_state['user_data'] = df
-                st.success("First entry added! You can now continue editing your data.")
-                st.rerun()  # Only rerun after submit
-                st.stop()   # Only stop after submit
-        show_footer()
+
+            new_datetime = datetime.datetime.combine(first_date, datetime.time())
+            df = pd.DataFrame([{'date': new_datetime, 'weight': first_weight}])
+            st.session_state['user_data'] = df
+            st.success("First entry added! You can now continue editing your data.")
+            st.rerun()  # Only rerun after submit
+            st.stop()   # Only stop after submit
         st.stop()
 else:
     df = st.session_state['user_data']
-    st.dataframe(df)
 
     # --- ADD DATA FORM ---
     st.divider()
@@ -54,10 +47,14 @@ else:
             df = pd.concat([df, new_data], ignore_index=True)
             st.session_state['user_data'] = df  # Update session state
             st.session_state['add_success'] = True
+        
+            csv = df.to_csv(index=False, date_format='%Y-%m-%d %H:%M:%S')
+            with open(path_csv.as_posix(), "w") as file_handle:
+                file_handle.write(csv)
+
             st.rerun()
     if st.session_state.get('add_success'):
         st.success("New data added successfully!")
-        st.info("⚠️ Remember to download the updated CSV and replace your existing file to save changes permanently.")
         del st.session_state['add_success']
 
     # --- DELETE DATA FORM ---
@@ -76,13 +73,17 @@ else:
                     df = new_df
                     st.session_state['user_data'] = df # Update session state
                     st.session_state['delete_success'] = True
+
+                    csv = df.to_csv(index=False, date_format='%Y-%m-%d %H:%M:%S')
+                    with open(path_csv.as_posix(), "w") as file_handle:
+                        file_handle.write(csv)
+
                     st.rerun()
                 else:
                     st.session_state['delete_warning'] = True
                     st.rerun()
     if st.session_state.get('delete_success'):
         st.success("Data deleted successfully!")
-        st.info("⚠️ Remember to download the updated CSV and replace your existing file to save changes permanently.")
         del st.session_state['delete_success']
     if st.session_state.get('delete_warning'):
         st.warning("No entry found for that date.")
@@ -98,4 +99,5 @@ else:
         mime="text/csv"
     )
 
-show_footer()
+    # --- SHOW RAW DATA ---
+    st.dataframe(df)

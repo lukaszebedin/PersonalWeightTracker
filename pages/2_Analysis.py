@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from Home import show_footer
 import streamlit as st
 from components.predictive_goal import predictive_goal_date
 from utils.data_utils import compute_trend, compute_weekly_averages, compute_moving_average, compute_moving_average_dates
@@ -62,5 +61,3 @@ else:
         fig_month, month_avg = plot_month_bar(df)
         st.plotly_chart(fig_month, use_container_width=True)
         show_month_summary(month_avg)
-
-show_footer()
