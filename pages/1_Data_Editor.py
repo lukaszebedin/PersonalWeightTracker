@@ -3,31 +3,25 @@ import pandas as pd
 import datetime
 import pathlib
 
+from utils.file_utils import load_data, save_data
+
 st.title("📋 Data Editor")
-
-path_csv = pathlib.Path(__file__).parent.parent.resolve() / "data" / "lukas.csv"
+load_data()
 if 'user_data' not in st.session_state:
-    if path_csv.is_file():
-        df = pd.read_csv(path_csv.as_posix(), parse_dates=['date'])
-        st.session_state['user_data'] = df
-        st.session_state['file_uploaded'] = True
-        st.rerun()
-    else:
-        st.info("No CSV? Start by adding your first entry below:")        
-        with st.form("first_entry_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                first_date = st.date_input("Date")
-            with col2:
-                first_weight = st.number_input("Weight", min_value=0.0, step=0.1)
+    st.info("No CSV? Start by adding your first entry below:")        
+    with st.form("first_entry_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            first_date = st.date_input("Date")
+        with col2:
+            first_weight = st.number_input("Weight", min_value=0.0, step=0.1)
 
-            new_datetime = datetime.datetime.combine(first_date, datetime.time())
-            df = pd.DataFrame([{'date': new_datetime, 'weight': first_weight}])
-            st.session_state['user_data'] = df
-            st.success("First entry added! You can now continue editing your data.")
-            st.rerun()  # Only rerun after submit
-            st.stop()   # Only stop after submit
-        st.stop()
+        new_datetime = datetime.datetime.combine(first_date, datetime.time())
+        df = pd.DataFrame([{'date': new_datetime, 'weight': first_weight}])
+        st.session_state['user_data'] = df
+        st.success("First entry added! You can now continue editing your data.")
+        st.rerun()  # Only rerun after submit
+        st.stop()   # Only stop after submit
 else:
     df = st.session_state['user_data']
 
@@ -48,11 +42,10 @@ else:
             st.session_state['user_data'] = df  # Update session state
             st.session_state['add_success'] = True
         
-            csv = df.to_csv(index=False, date_format='%Y-%m-%d %H:%M:%S')
-            with open(path_csv.as_posix(), "w") as file_handle:
-                file_handle.write(csv)
+            save_data();
 
             st.rerun()
+    
     if st.session_state.get('add_success'):
         st.success("New data added successfully!")
         del st.session_state['add_success']
@@ -73,11 +66,7 @@ else:
                     df = new_df
                     st.session_state['user_data'] = df # Update session state
                     st.session_state['delete_success'] = True
-
-                    csv = df.to_csv(index=False, date_format='%Y-%m-%d %H:%M:%S')
-                    with open(path_csv.as_posix(), "w") as file_handle:
-                        file_handle.write(csv)
-
+                    save_data()
                     st.rerun()
                 else:
                     st.session_state['delete_warning'] = True

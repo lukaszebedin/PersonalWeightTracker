@@ -4,12 +4,14 @@ import numpy as np
 import streamlit as st
 from components.predictive_goal import predictive_goal_date
 from utils.data_utils import compute_trend, compute_weekly_averages, compute_moving_average, compute_moving_average_dates
+from utils.file_utils import load_data
 from utils.charts import plot_day_of_week_bar, plot_month_bar, plot_weight_progression, plot_weekly_average_weight, plot_weekly_table
 from components.info_display import show_avg_weekly_loss, show_day_of_week_summary, show_month_summary, show_total_weight_loss
 
 
 # st.set_page_config(layout="wide")
 st.title("📈 Weight Analysis")
+load_data()
 
 # --- Use session_state to get user data ---
 if 'user_data' not in st.session_state:
